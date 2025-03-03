@@ -284,6 +284,12 @@ if(WITH_VCPKG)
   install(DIRECTORY "${VCPKG_BASE_DIR}/share/gdal/" DESTINATION "${CMAKE_INSTALL_DATADIR}/gdal")
   install(FILES "${CMAKE_BINARY_DIR}/cacert.pem" DESTINATION ${CMAKE_INSTALL_DATADIR}/)
 
+  
+endif()
+
+if(ANDROID)
+  add_dependencies(app deploy)
+else()
   add_dependencies(qfield deploy)
 endif()
 

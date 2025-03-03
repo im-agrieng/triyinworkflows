@@ -170,7 +170,6 @@ endif()
                  MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
                  MACOSX_BUNDLE_COPYRIGHT "Copyright (c) OPENGIS.ch")
   endif()
-endfunction()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(EXTRA_ARGS MACOSX_BUNDLE)
