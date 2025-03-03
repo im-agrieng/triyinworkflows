@@ -27,9 +27,7 @@ include(VcpkgToolchain)
 # The default installation paths
 include(GNUInstallDirs)
 
-project(${APP_NAME}
-  VERSION ${CLEAN_APP_VERSION}
-)
+project(${APP_NAME})
 
 GET_GIT_HEAD_REVISION(GIT_REFSPEC GIT_REV)
 
