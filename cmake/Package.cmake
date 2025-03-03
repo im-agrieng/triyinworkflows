@@ -102,6 +102,7 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
                            CONTENT "${CONTENT}")
           file(WRITE ${JAVA_FILE} "${CONTENT}")
         endforeach()
+    endif() # close the if (NOT APP_PACKAGE_NAME STREQUAL "qfield") block
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
