@@ -2,37 +2,53 @@
 find_package(Qt6QuickCompiler QUIET)
 find_package(Qt6 COMPONENTS Core5Compat LinguistTools REQUIRED)
 
+# Find required Qt packages
+find_package(Qt6QuickCompiler QUIET)
+find_package(Qt6 COMPONENTS Core5Compat LinguistTools REQUIRED)
+
 if(ANDROID)
-  set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE CACHE BOOL "Use per-target Android build directories")
+    set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE CACHE BOOL "Use per-target Android build directories")
 
-  qt_policy(SET QTP0002 NEW)  # Use this instead of cmake_policy
-  
-  # Set Android-specific variables for the target
-  set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
-  set(ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_TEMPLATE_FOLDER}")
+    function(create_executable)
+        cmake_parse_arguments(exe "" "TARGET" "EXTRA_ARGS" "" ${ARGN})
 
-  # Create the Android deployment settings file
-  set(_ANDROID_DEPLOYMENT_SETTINGS_FILE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json")
-  file(WRITE "${_ANDROID_DEPLOYMENT_SETTINGS_FILE}"
-    "{\n"
-    "  \"description\": \"This file is used by androiddeployqt\",\n"
-    "  \"qt\": \"${Qt6_DIR}\",\n"
-    "  \"sdk\": \"${ANDROID_SDK_ROOT}\",\n"
-    "  \"ndk\": \"${ANDROID_NDK_HOME}\",\n"
-    "  \"toolchain-prefix\": \"llvm\",\n"
-    "  \"tool-prefix\": \"llvm\",\n"
-    "  \"toolchain-version\": \"${ANDROID_NDK_VERSION}\",\n"
-    "  \"target-architecture\": \"${ANDROID_ABI}\",\n"
-    "  \"application-binary\": \"${CMAKE_BINARY_DIR}/src/app/app\"\n"
-    "}\n"
-  )
+        set(QFIELD_SOURCES
+            main.cpp 
+            ${RESOURCES} 
+            ${CMAKE_SOURCE_DIR}/images/images.qrc
+            ${CMAKE_BINARY_DIR}/images/logo.qrc
+            ${CMAKE_SOURCE_DIR}/resources/resources.qrc 
+            ${ICON_SRC}
+        )
 
-  # Copy Android template files
-  if(EXISTS "${CMAKE_SOURCE_DIR}/platform/android")
-    file(COPY "${CMAKE_SOURCE_DIR}/platform/android/" DESTINATION "${ANDROID_TEMPLATE_FOLDER}/")
-  endif()
+        qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
+        
+        # Link required Android plugins
+        target_link_libraries(${exe_TARGET} PRIVATE
+            Qt::Core
+            Qt::Gui
+            Qt::Qml
+            Qt::Quick
+            Qt::Sensors
+            Qt::SensorsQuick
+            Qt::WebView
+            Qt::WebViewQuick
+            Qt::AndroidSensors
+            Qt::WebViewAndroid
+        )
 
-endif()
+        # Set Android-specific properties
+        set_target_properties(${exe_TARGET} PROPERTIES
+            QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_PACKAGE_SOURCE_DIR}"
+            QT_QML_IMPORT_PATH "${Qt6_DIR}/qml"
+            QT_QML_ROOT_PATH "${CMAKE_SOURCE_DIR}/src/qml"
+            ANDROID_BUILD_DIR "${CMAKE_BINARY_DIR}/android-build/${exe_TARGET}"
+        )
+    endfunction()
+
+    # Create the Android executable
+    create_executable(TARGET app EXTRA_ARGS ${EXTRA_ARGS})
+else()
 
 # Set Qt policy for Android path handling
 if(POLICY QTP0002)
