@@ -16,7 +16,7 @@ if [[ -n ${CI_TAG} ]]; then
 
     if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
         export APP_NAME="SIGPAC-Go~"
-        export APP_PACKAGE_NAME="qfield_all_access"
+        export APP_PACKAGE_NAME="app_all_access"
     else
         export APP_NAME="SIGPAC-Go"
         export APP_PACKAGE_NAME="app"
@@ -26,42 +26,22 @@ if [[ -n ${CI_TAG} ]]; then
     export APP_VERSION_STR
     export APK_VERSION_CODE
     export APP_ENV="prod"
-elif [[ ${CI_PULL_REQUEST} = false ]]; then
-    echo "Building dev (nightly)"
+else
+    echo "Building default configuration"
     TRIPLET_NUMBER=$(arch_to_build_number ${TRIPLET})
-    CUSTOM_APP_PACKAGE_NAME=$(echo ${NIGHTLY_PACKAGE_NAME} | awk '{print $NF}' FS=.)
 
     if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
         export APP_NAME="SIGPAC-Go~ Dev"
-        export APP_PACKAGE_NAME="${CUSTOM_APP_PACKAGE_NAME:-qfield_all_access_dev}"
+        export APP_PACKAGE_NAME="app_all_access_dev"
     else
         export APP_NAME="SIGPAC-Go Dev"
-        export APP_PACKAGE_NAME="${CUSTOM_APP_PACKAGE_NAME:-qfield_dev}"
+        export APP_PACKAGE_NAME="app_dev"
     fi
     export APP_ICON="qfield_logo_beta"
     export APP_VERSION=""
-    export APP_VERSION_STR="${CI_BRANCH}-dev  - ${APP_VERSION_NAME}"
-    if [[ -n ${CUSTOM_APP_PACKAGE_NAME} ]]; then
-        export APK_VERSION_CODE="${CI_RUN_NUMBER}${TRIPLET_NUMBER}"
-    else
-        export APK_VERSION_CODE=0$((2020400 + CI_RUN_NUMBER))${TRIPLET_NUMBER}
-    fi
+    export APP_VERSION_STR="default-dev - ${APP_VERSION_NAME}"
+    export APK_VERSION_CODE=0$((2020400 + CI_RUN_NUMBER))${TRIPLET_NUMBER}
     export APP_ENV="dev"
-else
-    echo "Building pull request beta"
-    if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
-        export APP_NAME="SIGPAC-Go~ Beta ${CI_PULL_REQUEST_NUMBER}"
-        export APP_PACKAGE_NAME="qfield_all_access_beta"
-    else
-        export APP_NAME="SIGPAC-Go Beta ${CI_PULL_REQUEST_NUMBER}"
-        export APP_PACKAGE_NAME="qfield_beta"
-    fi
-
-    export APP_ICON="qfield_logo_pr"
-    export APP_VERSION=""
-    export APP_VERSION_STR="PR${CI_PULL_REQUEST_NUMBER} - ${APP_VERSION_NAME}"
-    export APK_VERSION_CODE="1"
-    export APP_ENV="pr"
 fi
 
 echo "Arch number: ${TRIPLET_NUMBER}"
