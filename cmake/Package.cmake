@@ -51,7 +51,7 @@ add_custom_target(bundle
                   COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
                   COMMENT "Running CPACK. Please wait..."
                   DEPENDS app)
-#add_dependencies(bundle app)
+add_dependencies(bundle app)
 
 # Qt IFW packaging framework
 if(BINARYCREATOR_EXECUTABLE)
@@ -140,7 +140,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     if(QT_IOS_UPLOAD_SYMBOL)
         set(QT_IOS_UPLOAD_SYMBOL_KEY "<key>uploadSymbols</key><true/>")
     else()
-        set(QT_IOS_UPLOAD_SYMBOL_KEY "")
+        set(QT_IOS_UPLOAD_SYMBOL_KEY ""
     endif()
 
 
