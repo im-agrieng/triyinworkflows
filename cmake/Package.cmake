@@ -77,9 +77,9 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
     set(AT "@")
     set(WITH_ALL_FILES_ACCESS OFF CACHE STRING "[ANDROID] Enable All Files Access to be able to work with data anywhere on your device. If this is enabled, publishing via Google Play requires a permissions declaration and a review approval by Google.")
     if(WITH_ALL_FILES_ACCESS)
-      set(QFIELD_EXTRA_PERMISSIONS "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE" />
-        <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-        <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />")
+      set(QFIELD_EXTRA_PERMISSIONS "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\" />
+        <uses-permission android:name=\"android.permission.READ_MEDIA_IMAGES\" />
+        <uses-permission android:name=\"android.permission.READ_MEDIA_VIDEO\" />")
     endif()
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml.in ${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/generated.xml.in ${CMAKE_SOURCE_DIR}/platform/android/generated.xml @ONLY)
@@ -145,9 +145,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         set(QT_IOS_UPLOAD_SYMBOL_KEY "")
     endif()
 
-
     configure_file(${CMAKE_SOURCE_DIR}/platform/ios/ExportOptions.plist.in "${QT_IOS_EXPORT_OPTIONS_FILE}" @ONLY)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/ios/CPackIosDeployIpa.cmake.in "${CMAKE_BINARY_DIR}/CPackExternal.cmake" @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/platform/ios/CPackIosDeployIpa.cmake.in "${CMAKE_BINARY_DIR}/CPackExternal.cmake" @ONLY)
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
 include(CPack)
