@@ -1,0 +1,14 @@
+{
+  "description": "This file is used by androiddeployqt",
+  "qt": "@Qt6_DIR@",
+  "sdk": "@ANDROID_SDK_ROOT@",
+  "ndk": "@ANDROID_NDK_HOME@",
+  "toolchain-prefix": "llvm",
+  "tool-prefix": "llvm",
+  "toolchain-version": "@ANDROID_NDK_VERSION@",
+  "ndk-host": "@ANDROID_NDK_HOST_SYSTEM_NAME@",
+  "target-architecture": "@ANDROID_ABI@",
+  "android-package-source-directory": "@ANDROID_PACKAGE_SOURCE_DIR@",
+  "android-platform": "@ANDROID_PLATFORM@",
+  "application-binary": "@CMAKE_BINARY_DIR@/src/app/app"
+}
