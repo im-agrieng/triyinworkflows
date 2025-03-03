@@ -35,14 +35,6 @@ function(create_executable)
       ${CMAKE_BINARY_DIR}/images/logo.qrc
       ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
 
-function(create_executable)
-  cmake_parse_arguments(exe "" "TARGET" "EXTRA_ARGS" "" ${ARGN})
-
-  set(QFIELD_SOURCES
-      main.cpp ${RESOURCES} ${CMAKE_SOURCE_DIR}/images/images.qrc
-      ${CMAKE_BINARY_DIR}/images/logo.qrc
-      ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
-
   # Set Qt policy for Android paths if available
   if(POLICY QTP0002)
     cmake_policy(SET QTP0002 NEW)
@@ -50,20 +42,18 @@ function(create_executable)
 
   if(ANDROID)
     # Create the app target for Android
-    qt_add_executable(app ${QFIELD_SOURCES})
-    set(exe_TARGET "app")
-    set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+    qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
                                            ${ANDROID_PACKAGE_SOURCE_DIR})
-    set_property(TARGET app PROPERTY QT_QML_IMPORT_PATH
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_IMPORT_PATH
                                            $ENV{Qt6_DIR}/qml)
-    set_property(TARGET app PROPERTY QT_QML_ROOT_PATH
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_ROOT_PATH
                                            ${CMAKE_SOURCE_DIR}/src/qml)
-
-    set(PROJECT_NAME ${exe_TARGET})
   else()
     add_executable(${exe_TARGET} ${exe_EXTRA_ARGS} ${QFIELD_SOURCES})
   endif()
 
+  # Set common properties and dependencies
   file(GLOB TS_FILES ${CMAKE_SOURCE_DIR}/i18n/*.ts)
   set_source_files_properties(
     ${TS_FILES} PROPERTIES OUTPUT_LOCATION
@@ -96,27 +86,56 @@ function(create_executable)
 
     get_target_property(qfield_qmlfiles qfield_qml QML_FILES)
     file(COPY ${qfield_qmlfiles}
-         DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app")
+         DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}")
 
     if(NOT WITH_BLUETOOTH)
       file(REMOVE
-           "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app/BluetoothDeviceChooser.qml")
+           "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}/BluetoothDeviceChooser.qml")
     endif()
     if(NOT WITH_SERIALPORT)
       file(REMOVE
-           "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app/SerialPortChooser.qml")
+           "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}/SerialPortChooser.qml")
     endif()
 
     qt_import_qml_plugins(${exe_TARGET} PATH_TO_SCAN
-                          "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app")
+                          "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}")
   endif()
 
   target_link_libraries(${exe_TARGET} PUBLIC Qt::Core5Compat)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::QSvgPlugin)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::Core5Compat)
 
-  set_target_properties(${exe_TARGET} PROPERTIES AUTORCC TRUE)
+  # Add any compile definitions
+  if(WITH_SPIX)
+    target_compile_definitions(${exe_TARGET} PUBLIC WITH_SPIX)
+  endif()
+
+  set_target_properties(${exe_TARGET} PROPERTIES 
+    AUTORCC TRUE
+    OUTPUT_NAME ${exe_TARGET})
+
+  # Install rules
+  install(TARGETS ${exe_TARGET}
+    BUNDLE DESTINATION ${QFIELD_BIN_DIR}
+    RUNTIME DESTINATION ${QFIELD_BIN_DIR}
+    LIBRARY DESTINATION ${QFIELD_LIB_DIR}
+    ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
+    FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
+    PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
+
 endfunction()
+
+# Call the function with the appropriate arguments
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set(EXTRA_ARGS MACOSX_BUNDLE)
+endif()
+
+# Always use "app" as the target name for Android, otherwise use "qfield"
+if(ANDROID)
+  create_executable(TARGET app EXTRA_ARGS ${EXTRA_ARGS})
+else()
+  create_executable(TARGET qfield EXTRA_ARGS ${EXTRA_ARGS})
+endif()
 
   if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     target_link_libraries(
