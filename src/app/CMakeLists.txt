@@ -91,9 +91,6 @@ function(create_executable)
   endif()
 
   get_target_property(QT_TARGET_TYPE Qt::Core TYPE)
-  # This should be in src/qml/CMakeLists.txt but that's not possible with Qt5.
-  # Retry with Qt6 Same is in tests/CMakeLists.txt
-  # https://bugreports.qt.io/browse/QTBUG-80847
   if(${QT_TARGET_TYPE} STREQUAL "STATIC_LIBRARY")
     find_package(Qt6 COMPONENTS QmlImportScanner)
 
@@ -110,13 +107,16 @@ function(create_executable)
            "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app/SerialPortChooser.qml")
     endif()
 
-    # Will be no longer needed for Qt6
     qt_import_qml_plugins(${exe_TARGET} PATH_TO_SCAN
                           "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/app")
   endif()
+
   target_link_libraries(${exe_TARGET} PUBLIC Qt::Core5Compat)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::QSvgPlugin)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::Core5Compat)
+
+  set_target_properties(${exe_TARGET} PROPERTIES AUTORCC TRUE)
+endfunction()
 
   if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     target_link_libraries(
