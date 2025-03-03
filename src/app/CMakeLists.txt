@@ -4,20 +4,7 @@ find_package(Qt6 COMPONENTS Core5Compat LinguistTools REQUIRED)
 
 # Set Qt Android build directory option for multiple targets
 if(ANDROID)
-  set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE CACHE BOOL "Use per-target Android build directories")
-  
-  # Set Qt policy for Android path handling
-  if(POLICY QTP0002)
-    cmake_policy(SET QTP0002 NEW)
-  endif()
-
-  # Configure Android deployment settings
-  set(ANDROID_DEPLOYMENT_SETTINGS_FILE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json")
-  configure_file(
-    "${CMAKE_SOURCE_DIR}/platform/android/deployment-settings.json.in"
-    "${ANDROID_DEPLOYMENT_SETTINGS_FILE}"
-    @ONLY
-  )
+  set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE)
 endif()
 
 # Set Qt policy for Android path handling
