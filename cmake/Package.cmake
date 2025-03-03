@@ -102,7 +102,6 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
                            CONTENT "${CONTENT}")
           file(WRITE ${JAVA_FILE} "${CONTENT}")
         endforeach()
-    endif()
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
