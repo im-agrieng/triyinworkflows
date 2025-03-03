@@ -81,7 +81,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 import com.sigpacgo.app.QFieldUtils;
-import com.sigpacgo.app.R;
+//import com.sigpacgo.app.R;
 import io.sentry.android.core.SentryAndroid;
 import java.io.BufferedInputStream;
 import java.io.File;
