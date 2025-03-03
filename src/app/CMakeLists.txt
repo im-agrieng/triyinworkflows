@@ -36,13 +36,15 @@ function(create_executable)
       ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
 
   if(ANDROID)
-    qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-                                               ${ANDROID_PACKAGE_SOURCE_DIR})
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_IMPORT_PATH
-                                               $ENV{Qt6_DIR}/qml)
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_ROOT_PATH
-                                               ${CMAKE_SOURCE_DIR}/src/qml)
+    # Change target name to "app" for Android
+    qt_add_executable(app ${QFIELD_SOURCES})
+    set(exe_TARGET "app")
+    set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+                                           ${ANDROID_PACKAGE_SOURCE_DIR})
+    set_property(TARGET app PROPERTY QT_QML_IMPORT_PATH
+                                           $ENV{Qt6_DIR}/qml)
+    set_property(TARGET app PROPERTY QT_QML_ROOT_PATH
+                                           ${CMAKE_SOURCE_DIR}/src/qml)
 
     set(PROJECT_NAME ${exe_TARGET})
   else()

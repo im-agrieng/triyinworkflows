@@ -53,7 +53,7 @@ mark_as_advanced (QFIELD_INCLUDE_SUBDIR QFIELD_BIN_SUBDIR QFIELD_LIB_SUBDIR)
 set(QFIELD_BIN_DIR ${QFIELD_BIN_SUBDIR})
 set(QFIELD_LIB_DIR ${QFIELD_LIB_SUBDIR})
 set(QFIELD_INCLUDE_DIR ${QFIELD_INCLUDE_SUBDIR})
-set(QT_ANDROID_APPLICATION_BINARY "qfield")
+set(QT_ANDROID_APPLICATION_BINARY "app")
 
 # set the default locations where the targets (executables, libraries) will land when compiled
 # this is to allow running QField directly from the build directory.
