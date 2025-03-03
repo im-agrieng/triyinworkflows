@@ -47,11 +47,18 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
 
-add_custom_target(bundle
-                  COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
-                  COMMENT "Running CPACK. Please wait..."
-                  DEPENDS app)
-add_dependencies(bundle app)
+# Only create the bundle target if app target exists
+if(TARGET app)
+  add_custom_target(bundle
+                    COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
+                    COMMENT "Running CPACK. Please wait..."
+                    DEPENDS app)
+else()
+  # Create a bundle target without the dependency
+  add_custom_target(bundle
+                    COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
+                    COMMENT "Running CPACK. Please wait... (app target not available)")
+endif()
 
 # Qt IFW packaging framework
 if(BINARYCREATOR_EXECUTABLE)
