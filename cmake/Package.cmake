@@ -102,7 +102,7 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
                            CONTENT "${CONTENT}")
           file(WRITE ${JAVA_FILE} "${CONTENT}")
         endforeach()
-    endif() # close the if (NOT APP_PACKAGE_NAME STREQUAL "qfield") block
+    endif()
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
@@ -140,7 +140,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     if(QT_IOS_UPLOAD_SYMBOL)
         set(QT_IOS_UPLOAD_SYMBOL_KEY "<key>uploadSymbols</key><true/>")
     else()
-        set(QT_IOS_UPLOAD_SYMBOL_KEY ""
+        set(QT_IOS_UPLOAD_SYMBOL_KEY "")
     endif()
 
 
