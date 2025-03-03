@@ -63,11 +63,6 @@ jobs:
         with:
           submodules: recursive
           
-      - name: Setup Package Environment
-        run: |
-          chmod +x scripts/setup-package.sh
-          ./scripts/setup-package.sh
-
       - name: ♻️ Check disk space
         run: df . -h
 
