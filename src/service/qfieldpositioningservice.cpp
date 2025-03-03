@@ -84,7 +84,7 @@ void QFieldPositioningService::triggerShowNotification()
   QJniObject::callStaticMethod<void>( "com/sigpacgo/app/QFieldPositioningService",
                                       "triggerShowNotification",
                                       "(Landroid/content/Context;)V",
-                                      QJniObject::javaContext() );
+                                      QNativeInterface::QAndroidApplication::context() );
 }
 
 void QFieldPositioningService::triggerReturnNotification()
