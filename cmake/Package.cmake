@@ -80,6 +80,11 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
         <uses-permission android:name=\"android.permission.READ_MEDIA_IMAGES\" />
         <uses-permission android:name=\"android.permission.READ_MEDIA_VIDEO\" />")
     endif()
+    
+    # Define the package structure
+    set(NEW_PACKAGE_PATH "com/sigpacgo/app")
+    set(OLD_PACKAGE_PATH "ch/opengis/qfield")
+    
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml.in ${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/generated.xml.in ${CMAKE_SOURCE_DIR}/platform/android/generated.xml @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/build.gradle.in ${CMAKE_SOURCE_DIR}/platform/android/build.gradle @ONLY)
@@ -87,19 +92,30 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
 
     set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
     file(COPY ${CMAKE_SOURCE_DIR}/platform/android/ DESTINATION ${ANDROID_TEMPLATE_FOLDER}/)
-    set(SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/${APP_PACKAGE_NAME}")
-    if (NOT APP_PACKAGE_NAME STREQUAL "qfield")
-        file(REMOVE_RECURSE ${SRC_FOLDER}) # remove any pre-existing content
-        file(RENAME "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield" ${SRC_FOLDER})
+    
+    # Create new package directory structure
+    set(NEW_SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/${NEW_PACKAGE_PATH}")
+    set(OLD_SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/${OLD_PACKAGE_PATH}")
+    
+    # Ensure the new directory exists
+    file(MAKE_DIRECTORY "${ANDROID_TEMPLATE_FOLDER}/src/com/sigpacgo")
+    
+    if(EXISTS "${OLD_SRC_FOLDER}")
+        # Move files from old location to new location
+        file(GLOB JAVA_FILES "${OLD_SRC_FOLDER}/*.java")
+        foreach(JAVA_FILE ${JAVA_FILES})
+            get_filename_component(FILE_NAME ${JAVA_FILE} NAME)
+            file(READ ${JAVA_FILE} CONTENT)
+            # Replace the package declaration
+            string(REPLACE "package ch.opengis.qfield" "package com.sigpacgo.app" CONTENT "${CONTENT}")
+            # Replace any other references to the old package
+            string(REPLACE "ch.opengis.qfield" "com.sigpacgo.app" CONTENT "${CONTENT}")
+            # Write to new location
+            file(WRITE "${NEW_SRC_FOLDER}/${FILE_NAME}" "${CONTENT}")
+        endforeach()
+        # Remove old directory after successful move
+        file(REMOVE_RECURSE "${OLD_SRC_FOLDER}")
     endif()
-    file(GLOB JAVA_FILES "${SRC_FOLDER}/*.java")
-    foreach(JAVA_FILE ${JAVA_FILES})
-      message(STATUS ${JAVA_FILE})
-      file(READ ${JAVA_FILE} CONTENT)
-      string(REGEX REPLACE "ch.opengis.qfield" "ch.opengis.${APP_PACKAGE_NAME}"
-                           CONTENT "${CONTENT}")
-      file(WRITE ${JAVA_FILE} "${CONTENT}")
-    endforeach()
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
