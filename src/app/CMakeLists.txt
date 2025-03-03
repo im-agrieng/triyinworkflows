@@ -1,5 +1,18 @@
+# Find required Qt packages
 find_package(Qt6QuickCompiler QUIET)
+find_package(Qt6 COMPONENTS Core5Compat LinguistTools REQUIRED)
 
+# Set Qt Android build directory option for multiple targets
+if(ANDROID)
+  set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE)
+endif()
+
+# Set Qt policy for Android path handling
+if(POLICY QTP0002)
+  cmake_policy(SET QTP0002 NEW)
+endif()
+
+# Platform-specific configurations
 if(MSVC)
   configure_file("${CMAKE_SOURCE_DIR}/platform/windows/appicon.rc.in"
                  "${CMAKE_CURRENT_BINARY_DIR}/appicon.rc")
@@ -8,40 +21,30 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(qfield_ICON ${CMAKE_SOURCE_DIR}/platform/macos/qfield_logo.icns)
-  set_source_files_properties(${qfield_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION
-                                                        "Resources")
+  set_source_files_properties(${qfield_ICON} PROPERTIES 
+    MACOSX_PACKAGE_LOCATION "Resources")
   list(APPEND RESOURCES ${qfield_ICON})
 endif()
 
-# lrelease .ts files
-find_package(Qt6 COMPONENTS LinguistTools)
-
-# include manually copied .qm files
-file(GLOB QM_FILES_MANUAL ${CMAKE_SOURCE_DIR}/i18n/*.qm)
-
+# Configure logo resources
 configure_file(${CMAKE_SOURCE_DIR}/images/logo.qrc.in
-               ${CMAKE_BINARY_DIR}/images/logo.qrc @ONLY)
+              ${CMAKE_BINARY_DIR}/images/logo.qrc @ONLY)
 
-find_package(
-  Qt6
-  COMPONENTS Core5Compat
-  REQUIRED)
+# Translation files
+file(GLOB QM_FILES_MANUAL ${CMAKE_SOURCE_DIR}/i18n/*.qm)
 
 function(create_executable)
   cmake_parse_arguments(exe "" "TARGET" "EXTRA_ARGS" "" ${ARGN})
 
   set(QFIELD_SOURCES
-      main.cpp ${RESOURCES} ${CMAKE_SOURCE_DIR}/images/images.qrc
+      main.cpp 
+      ${RESOURCES} 
+      ${CMAKE_SOURCE_DIR}/images/images.qrc
       ${CMAKE_BINARY_DIR}/images/logo.qrc
-      ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
-
-  # Set Qt policy for Android paths if available
-  if(POLICY QTP0002)
-    cmake_policy(SET QTP0002 NEW)
-  endif()
+      ${CMAKE_SOURCE_DIR}/resources/resources.qrc 
+      ${ICON_SRC})
 
   if(ANDROID)
-    # Create the app target for Android
     qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
     set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
                                            ${ANDROID_PACKAGE_SOURCE_DIR})
@@ -53,7 +56,7 @@ function(create_executable)
     add_executable(${exe_TARGET} ${exe_EXTRA_ARGS} ${QFIELD_SOURCES})
   endif()
 
-  # Set common properties and dependencies
+  # Translation handling
   file(GLOB TS_FILES ${CMAKE_SOURCE_DIR}/i18n/*.ts)
   set_source_files_properties(
     ${TS_FILES} PROPERTIES OUTPUT_LOCATION
@@ -70,7 +73,10 @@ function(create_executable)
     FILES
     ${QM_FILES})
 
-  target_link_libraries(${exe_TARGET} PRIVATE qfield_core qfield_qml)
+  # Link libraries
+  target_link_libraries(${exe_TARGET} PRIVATE 
+    qfield_core 
+    qfield_qml)
 
   if(ANDROID)
     target_link_libraries(${exe_TARGET} PRIVATE qfield_service)
@@ -80,6 +86,7 @@ function(create_executable)
     target_link_libraries(${exe_TARGET} PRIVATE qfield_sentry)
   endif()
 
+  # QML handling for static builds
   get_target_property(QT_TARGET_TYPE Qt::Core TYPE)
   if(${QT_TARGET_TYPE} STREQUAL "STATIC_LIBRARY")
     find_package(Qt6 COMPONENTS QmlImportScanner)
@@ -98,23 +105,45 @@ function(create_executable)
     endif()
 
     qt_import_qml_plugins(${exe_TARGET} PATH_TO_SCAN
-                          "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}")
+                         "${CMAKE_CURRENT_BINARY_DIR}/qmldrop/${exe_TARGET}")
   endif()
 
+  # Additional Qt dependencies
   target_link_libraries(${exe_TARGET} PUBLIC Qt::Core5Compat)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::QSvgPlugin)
   qt_import_plugins(${exe_TARGET} INCLUDE Qt::Core5Compat)
 
-  # Add any compile definitions
+  # Compile definitions
   if(WITH_SPIX)
     target_compile_definitions(${exe_TARGET} PUBLIC WITH_SPIX)
   endif()
 
+  if(WITH_VCPKG)
+    target_compile_definitions(${exe_TARGET} PUBLIC HAVE_STATIC_QCA_PLUGINS)
+  endif()
+
+  # Set target properties
   set_target_properties(${exe_TARGET} PROPERTIES 
     AUTORCC TRUE
     OUTPUT_NAME ${exe_TARGET})
 
-  # Install rules
+  # macOS specific settings
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    qt_finalize_executable(qfield)
+    set_target_properties(
+      ${exe_TARGET}
+      PROPERTIES 
+        MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
+        MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} OPENGIS.ch"
+        MACOSX_BUNDLE_ICON_FILE "qfield_logo.icns"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
+        MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_COPYRIGHT "Copyright (c) OPENGIS.ch")
+  endif()
+
+  # Installation rules
   install(TARGETS ${exe_TARGET}
     BUNDLE DESTINATION ${QFIELD_BIN_DIR}
     RUNTIME DESTINATION ${QFIELD_BIN_DIR}
@@ -122,91 +151,46 @@ function(create_executable)
     ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
     FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
     PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
-
 endfunction()
 
-# Call the function with the appropriate arguments
+# Set platform specific arguments
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(EXTRA_ARGS MACOSX_BUNDLE)
 endif()
 
-# Always use "app" as the target name for Android, otherwise use "qfield"
+# Create the executable with the appropriate target name
 if(ANDROID)
   create_executable(TARGET app EXTRA_ARGS ${EXTRA_ARGS})
 else()
   create_executable(TARGET qfield EXTRA_ARGS ${EXTRA_ARGS})
 endif()
 
-  if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    target_link_libraries(
-      ${exe_TARGET}
-      PUBLIC Qt6::QDarwinCameraPermissionPlugin
-             Qt6::QDarwinMicrophonePermissionPlugin
-             Qt6::QDarwinLocationPermissionPlugin)
-    qt_import_plugins(
-      ${exe_TARGET} INCLUDE Qt6::QDarwinCameraPermissionPlugin
+# Platform specific additional configurations
+if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  target_link_libraries(
+    ${exe_TARGET}
+    PUBLIC 
+      Qt6::QDarwinCameraPermissionPlugin
       Qt6::QDarwinMicrophonePermissionPlugin
       Qt6::QDarwinLocationPermissionPlugin)
-  endif()
-
-    if(WITH_VCPKG) # this triggers the initialisation of static qca ossl plugin.
-    target_compile_definitions(${exe_TARGET} PUBLIC HAVE_STATIC_QCA_PLUGINS)
-  endif()
-
-  set_target_properties(${exe_TARGET} PROPERTIES AUTORCC TRUE)
   
-  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    # Handles platform-specific tasks, including insuring permission plugins
-    qt_finalize_executable(qfield)
-
-    set_target_properties(
-      ${exe_TARGET}
-      PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
-                 MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} OPENGIS.ch"
-                 MACOSX_BUNDLE_ICON_FILE "qfield_logo.icns"
-                 MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
-                 MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
-                 MACOSX_BUNDLE_SHORT_VERSION_STRING
-                 "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
-                 MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
-                 MACOSX_BUNDLE_COPYRIGHT "Copyright (c) OPENGIS.ch")
-  endif()
-
-# Create the executable with the appropriate target name
-create_executable(TARGET qfield EXTRA_ARGS ${EXTRA_ARGS})
-
-# Update the install command to use the correct target name
-if(ANDROID)
-  install(
-    TARGETS app
-    BUNDLE DESTINATION ${QFIELD_BIN_DIR}
-    RUNTIME DESTINATION ${QFIELD_BIN_DIR}
-    LIBRARY DESTINATION ${QFIELD_LIB_DIR}
-    ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
-    FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
-    PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
-else()
-  install(
-    TARGETS qfield
-    BUNDLE DESTINATION ${QFIELD_BIN_DIR}
-    RUNTIME DESTINATION ${QFIELD_BIN_DIR}
-    LIBRARY DESTINATION ${QFIELD_LIB_DIR}
-    ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
-    FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
-    PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
+  qt_import_plugins(
+    ${exe_TARGET} 
+    INCLUDE 
+      Qt6::QDarwinCameraPermissionPlugin
+      Qt6::QDarwinMicrophonePermissionPlugin
+      Qt6::QDarwinLocationPermissionPlugin)
 endif()
 
+# Additional target for testing with Spix if enabled
 if(WITH_SPIX)
   create_executable(TARGET qfield_spix)
   target_link_libraries(qfield_spix PRIVATE Spix::Spix)
   target_compile_definitions(qfield_spix PUBLIC WITH_SPIX)
 endif()
 
-
+# iOS specific configurations
 if(IOS)
-  # QFIELD_APP_ICON_SUFFIX should be set from command line to either _pr or
-  # _beta
-
   include("${CMAKE_SOURCE_DIR}/cmake/AddQtIosApp.cmake")
   add_qt_ios_app(
     qfield
@@ -216,8 +200,7 @@ if(IOS)
     LONG_VERSION "${APK_VERSION_CODE}"
     ASSET_DIR "${PROJECT_SOURCE_DIR}/platform/ios/Assets.xcassets"
     CATALOG_APPICON "AppIcon${QFIELD_APP_ICON_SUFFIX}"
-    LAUNCHSCREEN_STORYBOARD
-      "${PROJECT_SOURCE_DIR}/platform/ios/LaunchScreen.storyboard"
+    LAUNCHSCREEN_STORYBOARD "${PROJECT_SOURCE_DIR}/platform/ios/LaunchScreen.storyboard"
     RESOURCE_FILES "${SHARE_DIR}"
     CUSTOM_PLIST "${PROJECT_SOURCE_DIR}/platform/ios/Info.plist.in"
     BUNDLE_IDENTIFIER "${IOS_APP_IDENTIFIER}"
