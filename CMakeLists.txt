@@ -2,63 +2,6 @@
 # CMake settings
 cmake_minimum_required(VERSION 3.19)
 
-cmake_minimum_required(VERSION 3.19)
-
-# Set the minimum Qt version first
-set(QT_MIN_VERSION 6.6.0)
-
-# Add Qt's CMake modules to the module path if needed
-list(APPEND CMAKE_PREFIX_PATH $ENV{Qt6_DIR})
-
-# Find required Qt packages early
-find_package(Qt6 COMPONENTS Core REQUIRED)
-# Include Qt's extra CMake functions
-include(${Qt6Core_DIR}/Qt6CoreMacros.cmake)
-
-project(${APP_NAME}
-  VERSION ${CLEAN_APP_VERSION}
-)
-
-# Now find all other required Qt components
-find_package(Qt6 COMPONENTS 
-    Concurrent 
-    Core 
-    Qml 
-    Gui 
-    Xml 
-    Positioning 
-    Widgets 
-    Network 
-    Quick 
-    Svg 
-    Sql 
-    Sensors 
-    WebView 
-    Multimedia 
-    Bluetooth 
-    Nfc 
-    RemoteObjects 
-    WebSockets 
-    Quick3D
-    SensorsQuick
-    WebViewQuick
-    REQUIRED
-)
-
-# Android specific setup
-if(ANDROID)
-    # Set Android package source directory early
-    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_BINARY_DIR}/android-template" CACHE STRING "Android package source directory")
-    
-    # Set Qt policies early
-    if(POLICY QTP0002)
-        qt_policy(SET QTP0002 NEW)
-    endif()
-
-    # Make sure Android plugins are included
-    find_package(Qt6 COMPONENTS AndroidSensors WebViewAndroid REQUIRED)
-endif()
-
 set(VCPKG_TAG 1aeec7b84d33cdaebdf479f24267c45c46bbc297)
 
 set(QML_IMPORT_PATH ${CMAKE_SOURCE_DIR}/src/qml/imports CACHE PATH "QML import path for Qt Creator to detect custom modules properly")
