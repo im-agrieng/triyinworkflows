@@ -12,7 +12,7 @@ set(APP_ICON "qfield_logo" CACHE STRING "Application Icon")
 set(APK_VERSION_CODE "1" CACHE STRING "Apk Version Code (Example: 1)")
 set(APP_VERSION "0" CACHE STRING "Application Version (Example: v1.0.0)")
 set(APP_VERSION_STR "local - dev" CACHE STRING "Application Version Name (Example: 1.0.0 - Homerun)")
-set(APP_PACKAGE_NAME "app" CACHE STRING "Package name suffix. E.g. app -> com.sigpacgo.app")
+set(APP_PACKAGE_NAME "app" CACHE STRING "Package name suffix. E.g. qfield --> ch.opengis.qfield")
 
 string(REGEX REPLACE "v" "" CLEAN_APP_VERSION "${APP_VERSION}")
 
@@ -53,7 +53,7 @@ mark_as_advanced (QFIELD_INCLUDE_SUBDIR QFIELD_BIN_SUBDIR QFIELD_LIB_SUBDIR)
 set(QFIELD_BIN_DIR ${QFIELD_BIN_SUBDIR})
 set(QFIELD_LIB_DIR ${QFIELD_LIB_SUBDIR})
 set(QFIELD_INCLUDE_DIR ${QFIELD_INCLUDE_SUBDIR})
-set(QT_ANDROID_APPLICATION_BINARY "app")
+set(QT_ANDROID_APPLICATION_BINARY "qfield")
 
 # set the default locations where the targets (executables, libraries) will land when compiled
 # this is to allow running QField directly from the build directory.
@@ -100,32 +100,21 @@ endif()
 
 set(QT_MIN_VERSION 6.6.0)
 
-if(ANDROID)
-    # Set Qt policies for Android
-    if(POLICY QTP0002)
-        cmake_policy(SET QTP0002 NEW)
-    endif()
+if (ANDROID)
+  if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+  else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong")
+  endif()
 
-    # Make sure the generator for android_deployment_settings.json can figure out the architecture
-    list(APPEND CMAKE_FIND_ROOT_PATH /)
-    
-    # Set Android package source directory
-    set(ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_BINARY_DIR}/android-template)
-    
-    # Ensure proper JSON formatting for Android paths
-    set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_PACKAGE_SOURCE_DIR}")
-    
-    # Set the correct application binary name
-    set(QT_ANDROID_APPLICATION_BINARY "app")
-    
-    # Configure Android-specific build flags
-    if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
-    else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong")
-    endif()
+  link_libraries("-ljnigraphics")
+
+  # Make sure the generator for android_deployment_settings.json can figure out the architecture
+  list(APPEND CMAKE_FIND_ROOT_PATH /)
+
+  set(ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_BINARY_DIR}/android-template)
 endif()
 
 find_package(Qt6 COMPONENTS Concurrent Core Qml Gui Xml Positioning Widgets Network Quick Svg Sql Sensors WebView Multimedia Bluetooth Nfc RemoteObjects WebSockets Quick3D REQUIRED)
@@ -284,12 +273,6 @@ if(WITH_VCPKG)
   install(DIRECTORY "${VCPKG_BASE_DIR}/share/gdal/" DESTINATION "${CMAKE_INSTALL_DATADIR}/gdal")
   install(FILES "${CMAKE_BINARY_DIR}/cacert.pem" DESTINATION ${CMAKE_INSTALL_DATADIR}/)
 
-  
-endif()
-
-if(ANDROID)
-  add_dependencies(app deploy)
-else()
   add_dependencies(qfield deploy)
 endif()
 

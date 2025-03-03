@@ -6,7 +6,7 @@ find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${VCPKG_INSTALLED_DIR}/ar
 find_program(ANDROIDDEPLOYQT_EXECUTABLE androiddeployqt HINTS "${QT_HOST_PATH}/tools/Qt6/bin")
 
 set(CPACK_GENERATOR)
-set(CPACK_PACKAGE_EXECUTABLES qfield;QField)
+set(CPACK_PACKAGE_EXECUTABLES app;QField)
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://qfield.org")
 # set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/images/icons/qfield_logo.png")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
@@ -34,7 +34,7 @@ if(WIN32)
 
     message(STATUS "   + NSIS                             YES ")
     set(CPACK_NSIS_EXECUTABLES_DIRECTORY "usr\\\\bin")
-    set(CPACK_NSIS_DISPLAY_NAME "QField")
+    set(CPACK_NSIS_DISPLAY_NAME "SIGPAC-Go")
 
     list(APPEND CPACK_GENERATOR "NSIS")
 endif()
@@ -50,7 +50,7 @@ set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
 add_custom_target(bundle
                   COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
                   COMMENT "Running CPACK. Please wait..."
-                  DEPENDS qfield)
+                  DEPENDS app)
 
 # Qt IFW packaging framework
 if(BINARYCREATOR_EXECUTABLE)
@@ -80,11 +80,6 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
         <uses-permission android:name=\"android.permission.READ_MEDIA_IMAGES\" />
         <uses-permission android:name=\"android.permission.READ_MEDIA_VIDEO\" />")
     endif()
-    
-    # Define the package structure
-    set(NEW_PACKAGE_PATH "com/sigpacgo/app")
-    set(OLD_PACKAGE_PATH "ch/opengis/qfield")
-    
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml.in ${CMAKE_SOURCE_DIR}/platform/android/AndroidManifest.xml @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/generated.xml.in ${CMAKE_SOURCE_DIR}/platform/android/generated.xml @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/build.gradle.in ${CMAKE_SOURCE_DIR}/platform/android/build.gradle @ONLY)
@@ -92,30 +87,19 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
 
     set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
     file(COPY ${CMAKE_SOURCE_DIR}/platform/android/ DESTINATION ${ANDROID_TEMPLATE_FOLDER}/)
-    
-    # Create new package directory structure
-    set(NEW_SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/${NEW_PACKAGE_PATH}")
-    set(OLD_SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/${OLD_PACKAGE_PATH}")
-    
-    # Ensure the new directory exists
-    file(MAKE_DIRECTORY "${ANDROID_TEMPLATE_FOLDER}/src/com/sigpacgo")
-    
-    if(EXISTS "${OLD_SRC_FOLDER}")
-        # Move files from old location to new location
-        file(GLOB JAVA_FILES "${OLD_SRC_FOLDER}/*.java")
-        foreach(JAVA_FILE ${JAVA_FILES})
-            get_filename_component(FILE_NAME ${JAVA_FILE} NAME)
-            file(READ ${JAVA_FILE} CONTENT)
-            # Replace the package declaration
-            string(REPLACE "package ch.opengis.qfield" "package com.sigpacgo.app" CONTENT "${CONTENT}")
-            # Replace any other references to the old package
-            string(REPLACE "ch.opengis.qfield" "com.sigpacgo.app" CONTENT "${CONTENT}")
-            # Write to new location
-            file(WRITE "${NEW_SRC_FOLDER}/${FILE_NAME}" "${CONTENT}")
-        endforeach()
-        # Remove old directory after successful move
-        file(REMOVE_RECURSE "${OLD_SRC_FOLDER}")
+    set(SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/${APP_PACKAGE_NAME}")
+    if (NOT APP_PACKAGE_NAME STREQUAL "qfield")
+        file(REMOVE_RECURSE ${SRC_FOLDER}) # remove any pre-existing content
+        file(RENAME "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield" ${SRC_FOLDER})
     endif()
+    file(GLOB JAVA_FILES "${SRC_FOLDER}/*.java")
+    foreach(JAVA_FILE ${JAVA_FILES})
+      message(STATUS ${JAVA_FILE})
+      file(READ ${JAVA_FILE} CONTENT)
+      string(REGEX REPLACE "ch.opengis.qfield" "ch.opengis.${APP_PACKAGE_NAME}"
+                           CONTENT "${CONTENT}")
+      file(WRITE ${JAVA_FILE} "${CONTENT}")
+    endforeach()
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
