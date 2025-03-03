@@ -36,7 +36,7 @@ function(create_executable)
       ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
 
   if(ANDROID)
-    # Change target name to "app" for Android
+    # Create the app target for Android
     qt_add_executable(app ${QFIELD_SOURCES})
     set(exe_TARGET "app")
     set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -143,7 +143,30 @@ endfunction()
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(EXTRA_ARGS MACOSX_BUNDLE)
 endif()
+
+# Create the executable with the appropriate target name
 create_executable(TARGET qfield EXTRA_ARGS ${EXTRA_ARGS})
+
+# Update the install command to use the correct target name
+if(ANDROID)
+  install(
+    TARGETS app
+    BUNDLE DESTINATION ${QFIELD_BIN_DIR}
+    RUNTIME DESTINATION ${QFIELD_BIN_DIR}
+    LIBRARY DESTINATION ${QFIELD_LIB_DIR}
+    ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
+    FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
+    PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
+else()
+  install(
+    TARGETS qfield
+    BUNDLE DESTINATION ${QFIELD_BIN_DIR}
+    RUNTIME DESTINATION ${QFIELD_BIN_DIR}
+    LIBRARY DESTINATION ${QFIELD_LIB_DIR}
+    ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
+    FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
+    PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
+endif()
 
 if(WITH_SPIX)
   create_executable(TARGET qfield_spix)
@@ -151,14 +174,6 @@ if(WITH_SPIX)
   target_compile_definitions(qfield_spix PUBLIC WITH_SPIX)
 endif()
 
-install(
-  TARGETS qfield
-  BUNDLE DESTINATION ${QFIELD_BIN_DIR}
-  RUNTIME DESTINATION ${QFIELD_BIN_DIR}
-  LIBRARY DESTINATION ${QFIELD_LIB_DIR}
-  ARCHIVE DESTINATION ${QFIELD_LIB_DIR}
-  FRAMEWORK DESTINATION ${QFIELD_FW_SUBDIR}
-  PUBLIC_HEADER DESTINATION ${QFIELD_INCLUDE_DIR})
 
 if(IOS)
   # QFIELD_APP_ICON_SUFFIX should be set from command line to either _pr or
