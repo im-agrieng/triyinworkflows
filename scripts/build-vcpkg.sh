@@ -7,8 +7,8 @@ export SOURCE_DIR=/usr/src/qfield
 CMAKE_BUILD_DIR=/usr/src/qfield/build-${triplet}
 ANDROID_NDK_VERSION=$(sed -En -e 's/^Pkg.Revision\s*=\s*([0-9a-f]+)/\1/p' ${ANDROID_NDK_HOME}/source.properties)
 
-[[ -z ${APP_NAME} ]] && APP_NAME="QField Home"
-[[ -z ${APP_PACKAGE_NAME} ]] && APP_PACKAGE_NAME="qfield_home"
+[[ -z ${APP_NAME} ]] && APP_NAME="SIGPAC-Go"
+[[ -z ${APP_PACKAGE_NAME} ]] && APP_PACKAGE_NAME="app"
 [[ -z ${APP_ICON} ]] && APP_ICON="qfield_logo_beta"
 
 echo "Package name ${APP_PACKAGE_NAME}"

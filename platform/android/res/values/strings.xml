@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name" translatable="false">SIGPAC-Go</string>
-    <string name="lib_name" translatable="false">qfield</string>
+    <string name="lib_name" translatable="false">app</string>
     <string name="done_unpacking_msg">Done unpacking, start QGIS.</string>
     <string name="unpacking_title">SIGPAC-Go is getting ready</string>
     <string name="unpacking_msg">This one-time operation will take a brief moment</string>
