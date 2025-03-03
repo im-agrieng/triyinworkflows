@@ -1,2 +1,2 @@
-# This file is intentionally empty to avoid CMake parsing errors.
-# If this file is required, its content should be added here.
+# Minimal CMake command to ensure the file parses.
+message("CPackIosDeployIpa.cmake.in included")
