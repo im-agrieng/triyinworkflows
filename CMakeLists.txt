@@ -156,56 +156,33 @@ else()
 endif()
 
 set(QT_MIN_VERSION 6.6.0)
-# Add this right after the project() section, before any target creation:
-if(ANDROID)
 
-    # Set Android package source directory early
-    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_BINARY_DIR}/android-template" CACHE STRING "Android package source directory")
-    
-    # Copy Android template files
-    file(COPY "${CMAKE_SOURCE_DIR}/platform/android/" DESTINATION "${ANDROID_PACKAGE_SOURCE_DIR}/")
-    
-    # Set Qt policies early
+if(ANDROID)
+    # Set Qt policies for Android
     if(POLICY QTP0002)
-        qt_policy(SET QTP0002 NEW)
+        cmake_policy(SET QTP0002 NEW)
     endif()
 
-    # Generate Android deployment settings
-    set(_ANDROID_DEPLOYMENT_SETTINGS_FILE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json")
-    file(WRITE "${_ANDROID_DEPLOYMENT_SETTINGS_FILE}"
-      "{\n"
-      "  \"description\": \"This file is used by androiddeployqt\",\n"
-      "  \"qt\": \"${Qt6_DIR}\",\n"
-      "  \"sdk\": \"${ANDROID_SDK_ROOT}\",\n"
-      "  \"ndk\": \"${ANDROID_NDK_HOME}\",\n"
-      "  \"toolchain-prefix\": \"llvm\",\n"
-      "  \"tool-prefix\": \"llvm\",\n"
-      "  \"toolchain-version\": \"${ANDROID_NDK_VERSION}\",\n"
-      "  \"target-architecture\": \"${ANDROID_ABI}\",\n"
-      "  \"application-binary\": \"${CMAKE_BINARY_DIR}/src/app/app\",\n"
-      "  \"android-package-source-directory\": \"${ANDROID_PACKAGE_SOURCE_DIR}\",\n"
-      "  \"android-platform\": \"android-${ANDROID_PLATFORM}\"\n"
-      "}\n"
-    )
-endif()
-
-if(ANDROID)
-    set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE CACHE BOOL "Use per-target Android build directories")
+    # Make sure the generator for android_deployment_settings.json can figure out the architecture
+    list(APPEND CMAKE_FIND_ROOT_PATH /)
     
-    # Don't recreate the deployment settings file here
-    # Don't set Android package source directory here
+    # Set Android package source directory
+    set(ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_BINARY_DIR}/android-template)
     
-    qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
+    # Ensure proper JSON formatting for Android paths
+    set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_PACKAGE_SOURCE_DIR}")
     
-    # Ensure properties are set with proper JSON formatting
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_PACKAGE_SOURCE_DIR}")
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_IMPORT_PATH "${Qt6_DIR}/qml")
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_ROOT_PATH "${CMAKE_SOURCE_DIR}/src/qml")
+    # Set the correct application binary name
+    set(QT_ANDROID_APPLICATION_BINARY "app")
     
-    # Set Android-specific build directory
-    set_property(TARGET ${exe_TARGET} PROPERTY ANDROID_BUILD_DIR "${CMAKE_BINARY_DIR}/android-build/${exe_TARGET}")
-else()
-    add_executable(${exe_TARGET} ${exe_EXTRA_ARGS} ${QFIELD_SOURCES})
+    # Configure Android-specific build flags
+    if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong")
+    endif()
 endif()
 
 find_package(Qt6 COMPONENTS Concurrent Core Qml Gui Xml Positioning Widgets Network Quick Svg Sql Sensors WebView Multimedia Bluetooth Nfc RemoteObjects WebSockets Quick3D REQUIRED)
