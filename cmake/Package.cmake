@@ -85,26 +85,48 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/generated.xml.in ${CMAKE_SOURCE_DIR}/platform/android/generated.xml @ONLY)
     message(STATUS "APP_PACKAGE_NAME: ${APP_PACKAGE_NAME}")
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/build.gradle.in ${CMAKE_SOURCE_DIR}/platform/android/build.gradle @ONLY)
-    # Rename build.gradle to include the correct package name
+    
+    # First define the template folder
+    set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
+    
+    # Then use it in the rename operation
     set(NEW_BUILD_GRADLE "${ANDROID_TEMPLATE_FOLDER}/build.gradle")
+    
+    # Create the directory if it doesn't exist
+    file(MAKE_DIRECTORY ${ANDROID_TEMPLATE_FOLDER})
+    
+    # Now rename the file
     file(RENAME "${CMAKE_SOURCE_DIR}/platform/android/build.gradle" "${NEW_BUILD_GRADLE}")
+    
     configure_file(${CMAKE_SOURCE_DIR}/platform/android/CPackAndroidDeployQt.cmake.in "${CMAKE_BINARY_DIR}/CPackExternal.cmake" @ONLY)
 
-    set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
     file(COPY ${CMAKE_SOURCE_DIR}/platform/android/ DESTINATION ${ANDROID_TEMPLATE_FOLDER}/)
     set(SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/${APP_PACKAGE_NAME}")
-    if (NOT APP_PACKAGE_NAME STREQUAL "qfield")
-        file(REMOVE_RECURSE ${SRC_FOLDER}) # remove any pre-existing content
+    
+    # Check if the source directory exists before attempting to rename
+    if (NOT APP_PACKAGE_NAME STREQUAL "qfield" AND EXISTS "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield")
+        # Create parent directory if it doesn't exist
+        file(MAKE_DIRECTORY "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/${APP_PACKAGE_NAME}")
+        
+        # Remove any pre-existing content in the target directory
+        if(EXISTS ${SRC_FOLDER})
+            file(REMOVE_RECURSE ${SRC_FOLDER})
+        endif()
+        
         file(RENAME "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield" ${SRC_FOLDER})
     endif()
-    file(GLOB JAVA_FILES "${SRC_FOLDER}/*.java")
-    foreach(JAVA_FILE ${JAVA_FILES})
-      message(STATUS ${JAVA_FILE})
-      file(READ ${JAVA_FILE} CONTENT)
-      string(REGEX REPLACE "ch.opengis.qfield" "ch.opengis.${APP_PACKAGE_NAME}"
-                           CONTENT "${CONTENT}")
-      file(WRITE ${JAVA_FILE} "${CONTENT}")
-    endforeach()
+    
+    # Make sure the directory exists before globbing
+    if(EXISTS ${SRC_FOLDER})
+        file(GLOB JAVA_FILES "${SRC_FOLDER}/*.java")
+        foreach(JAVA_FILE ${JAVA_FILES})
+          message(STATUS ${JAVA_FILE})
+          file(READ ${JAVA_FILE} CONTENT)
+          string(REGEX REPLACE "ch.opengis.qfield" "ch.opengis.${APP_PACKAGE_NAME}"
+                               CONTENT "${CONTENT}")
+          file(WRITE ${JAVA_FILE} "${CONTENT}")
+        endforeach()
+    endif()
 
     set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_BINARY_DIR}/CPackExternal.cmake")
 endif()
