@@ -149,11 +149,12 @@ endif()
       Qt6::QDarwinLocationPermissionPlugin)
   endif()
 
-  if(WITH_VCPKG) # this triggers the initialisation of static qca ossl plugin.
+    if(WITH_VCPKG) # this triggers the initialisation of static qca ossl plugin.
     target_compile_definitions(${exe_TARGET} PUBLIC HAVE_STATIC_QCA_PLUGINS)
   endif()
 
   set_target_properties(${exe_TARGET} PROPERTIES AUTORCC TRUE)
+  
   if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     # Handles platform-specific tasks, including insuring permission plugins
     qt_finalize_executable(qfield)
@@ -170,10 +171,6 @@ endif()
                  MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
                  MACOSX_BUNDLE_COPYRIGHT "Copyright (c) OPENGIS.ch")
   endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  set(EXTRA_ARGS MACOSX_BUNDLE)
-endif()
 
 # Create the executable with the appropriate target name
 create_executable(TARGET qfield EXTRA_ARGS ${EXTRA_ARGS})
