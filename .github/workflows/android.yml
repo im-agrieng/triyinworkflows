@@ -21,7 +21,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - triplet: 'arm64-android'
