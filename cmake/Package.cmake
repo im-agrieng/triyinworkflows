@@ -51,6 +51,7 @@ add_custom_target(bundle
                   COMMAND ${CMAKE_CPACK_COMMAND} "--config" "${CMAKE_BINARY_DIR}/BundleConfig.cmake"
                   COMMENT "Running CPACK. Please wait..."
                   DEPENDS app)
+add_dependencies(bundle app)
 
 # Qt IFW packaging framework
 if(BINARYCREATOR_EXECUTABLE)
