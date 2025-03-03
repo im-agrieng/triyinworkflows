@@ -100,22 +100,33 @@ endif()
 
 set(QT_MIN_VERSION 6.6.0)
 
-if (ANDROID)
-  if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
-  else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong")
-  endif()
+if(ANDROID)
+    # Set Qt policies for Android
+    if(POLICY QTP0002)
+        cmake_policy(SET QTP0002 NEW)
+    endif()
 
-  link_libraries("-ljnigraphics")
-
-  # Make sure the generator for android_deployment_settings.json can figure out the architecture
-  list(APPEND CMAKE_FIND_ROOT_PATH /)
-
-  set(ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_BINARY_DIR}/android-template)
-endif()
+    # Make sure the generator for android_deployment_settings.json can figure out the architecture
+    list(APPEND CMAKE_FIND_ROOT_PATH /)
+    
+    # Set Android package source directory
+    set(ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_BINARY_DIR}/android-template)
+    
+    # Ensure proper JSON formatting for Android paths
+    set_property(TARGET app PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_PACKAGE_SOURCE_DIR}")
+    
+    # Set the correct application binary name
+    set(QT_ANDROID_APPLICATION_BINARY "app")
+    
+    # Configure Android-specific build flags
+    if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
+    else()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fstack-protector-strong")
+    endif()
+endif())
 
 find_package(Qt6 COMPONENTS Concurrent Core Qml Gui Xml Positioning Widgets Network Quick Svg Sql Sensors WebView Multimedia Bluetooth Nfc RemoteObjects WebSockets Quick3D REQUIRED)
 

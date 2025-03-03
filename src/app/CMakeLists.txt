@@ -35,6 +35,19 @@ function(create_executable)
       ${CMAKE_BINARY_DIR}/images/logo.qrc
       ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
 
+function(create_executable)
+  cmake_parse_arguments(exe "" "TARGET" "EXTRA_ARGS" "" ${ARGN})
+
+  set(QFIELD_SOURCES
+      main.cpp ${RESOURCES} ${CMAKE_SOURCE_DIR}/images/images.qrc
+      ${CMAKE_BINARY_DIR}/images/logo.qrc
+      ${CMAKE_SOURCE_DIR}/resources/resources.qrc ${ICON_SRC})
+
+  # Set Qt policy for Android paths if available
+  if(POLICY QTP0002)
+    cmake_policy(SET QTP0002 NEW)
+  endif()
+
   if(ANDROID)
     # Create the app target for Android
     qt_add_executable(app ${QFIELD_SOURCES})
