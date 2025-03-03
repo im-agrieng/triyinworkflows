@@ -19,7 +19,7 @@ if [[ -n ${CI_TAG} ]]; then
         export APP_PACKAGE_NAME="qfield_all_access"
     else
         export APP_NAME="SIGPAC-Go"
-        export APP_PACKAGE_NAME="qfield"
+        export APP_PACKAGE_NAME="app"
     fi
     export APP_ICON="qfield_logo"
     export APP_VERSION="${CI_TAG}"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+[[ -z ${APP_NAME} ]] && APP_NAME="SIGPAC-Go"
+[[ -z ${APP_PACKAGE_NAME} ]] && APP_PACKAGE_NAME="app"
+
 # GNU prefix command for mac os support (gsed, gsplit)
 GP=
 if [[ "${OSTYPE}" =~ darwin* ]]; then

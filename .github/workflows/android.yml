@@ -75,6 +75,12 @@ jobs:
 
       - name: ♻️ Check disk space
         run: df . -h
+        
+      - name: Make script executable
+        run: chmod +x scripts/android_package_setup.sh
+
+      - name: Setup Android package structure
+        run: ./scripts/android_package_setup.sh
 
       - name: 🌾 Prepare variables
         id: vars
