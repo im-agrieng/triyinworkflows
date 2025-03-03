@@ -74,7 +74,7 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
     message(STATUS "   + Android                              YES ")
     set(CPACK_GENERATOR "External;${CPACK_GENERATOR}")
     set(AT "@")
-    set(WITH_ALL_FILES_ACCESS OFF CACHE STRING "[ANDROID] Enable All Files Access to be able to work with data anywhere on your device. If this is enabled, publishing via Google Play requires a permissions declaration and a review approval by Google.")
+    set(WITH_ALL_FILES_ACCESS OFF CACHE STRING "[ANDROID] Enable All Files Access to be able to work with data anywhere on your device. This is enabled, publishing via Google Play requires a permissions declaration and a review approval by Google.")
     if(WITH_ALL_FILES_ACCESS)
       set(QFIELD_EXTRA_PERMISSIONS "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\" />
         <uses-permission android:name=\"android.permission.READ_MEDIA_IMAGES\" />
@@ -89,8 +89,8 @@ if(ANDROID AND ANDROIDDEPLOYQT_EXECUTABLE)
     file(COPY ${CMAKE_SOURCE_DIR}/platform/android/ DESTINATION ${ANDROID_TEMPLATE_FOLDER}/)
     set(SRC_FOLDER "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/${APP_PACKAGE_NAME}")
     if (NOT APP_PACKAGE_NAME STREQUAL "qfield")
-        file(REMOVE_RECURSE ${SRC_FOLDER}) # remove any pre-existing content
         file(RENAME "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield" ${SRC_FOLDER})
+        file(REMOVE_RECURSE "${ANDROID_TEMPLATE_FOLDER}/src/ch/opengis/qfield") # remove the old directory
     endif()
     file(GLOB JAVA_FILES "${SRC_FOLDER}/*.java")
     foreach(JAVA_FILE ${JAVA_FILES})
