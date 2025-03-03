@@ -9,40 +9,23 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
 APP_VERSION_NAME=$(cat ${DIR}/../../RELEASE_NAME)
 
-if [[ -n ${CI_TAG} ]]; then
-    echo "Building release from tag"
-    APP_VERSION_STR="$(app_version_str ${CI_TAG}) - ${APP_VERSION_NAME}"
-    APK_VERSION_CODE=$(apk_version_code "${CI_TAG}" "${TRIPLET}")
+# Always build with release configuration
+echo "Building with release configuration"
+APP_VERSION_STR="commit-${CURRENT_COMMIT} - ${APP_VERSION_NAME}"
+APK_VERSION_CODE="1" # Or any default value
 
-    if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
-        export APP_NAME="SIGPAC-Go~"
-        export APP_PACKAGE_NAME="app_all_access"
-    else
-        export APP_NAME="SIGPAC-Go"
-        export APP_PACKAGE_NAME="app"
-    fi
-    export APP_ICON="qfield_logo"
-    export APP_VERSION="${CI_TAG}"
-    export APP_VERSION_STR
-    export APK_VERSION_CODE
-    export APP_ENV="prod"
+if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
+    export APP_NAME="SIGPAC-Go~"
+    export APP_PACKAGE_NAME="app_all_access"
 else
-    echo "Building default configuration"
-    TRIPLET_NUMBER=$(arch_to_build_number ${TRIPLET})
-
-    if [[ ${ALL_FILES_ACCESS} == "ON" ]]; then
-        export APP_NAME="SIGPAC-Go~ Dev"
-        export APP_PACKAGE_NAME="app_all_access_dev"
-    else
-        export APP_NAME="SIGPAC-Go Dev"
-        export APP_PACKAGE_NAME="app_dev"
-    fi
-    export APP_ICON="qfield_logo_beta"
-    export APP_VERSION=""
-    export APP_VERSION_STR="default-dev - ${APP_VERSION_NAME}"
-    export APK_VERSION_CODE=0$((2020400 + CI_RUN_NUMBER))${TRIPLET_NUMBER}
-    export APP_ENV="dev"
+    export APP_NAME="SIGPAC-Go"
+    export APP_PACKAGE_NAME="app"
 fi
+export APP_ICON="qfield_logo"
+export APP_VERSION="${CURRENT_COMMIT}"
+export APP_VERSION_STR
+export APK_VERSION_CODE
+export APP_ENV="prod"
 
 echo "Arch number: ${TRIPLET_NUMBER}"
 echo "APP_NAME: ${APP_NAME}"
