@@ -11,21 +11,12 @@ if(ANDROID)
     cmake_policy(SET QTP0002 NEW)
   endif()
 
-  # Generate Android deployment settings directly
-  file(WRITE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json"
-    "{\n"
-    "  \"description\": \"This file is used by androiddeployqt\",\n"
-    "  \"qt\": \"${Qt6_DIR}\",\n"
-    "  \"sdk\": \"${ANDROID_SDK_ROOT}\",\n"
-    "  \"ndk\": \"${ANDROID_NDK_HOME}\",\n"
-    "  \"toolchain-prefix\": \"llvm\",\n"
-    "  \"tool-prefix\": \"llvm\",\n"
-    "  \"toolchain-version\": \"${ANDROID_NDK_VERSION}\",\n"
-    "  \"target-architecture\": \"${ANDROID_ABI}\",\n"
-    "  \"android-package-source-directory\": \"${ANDROID_PACKAGE_SOURCE_DIR}\",\n"
-    "  \"android-platform\": \"${ANDROID_PLATFORM}\",\n"
-    "  \"application-binary\": \"${CMAKE_BINARY_DIR}/src/app/app\"\n"
-    "}\n"
+  # Configure Android deployment settings
+  set(ANDROID_DEPLOYMENT_SETTINGS_FILE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/platform/android/deployment-settings.json.in"
+    "${ANDROID_DEPLOYMENT_SETTINGS_FILE}"
+    @ONLY
   )
 endif()
 
