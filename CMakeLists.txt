@@ -98,6 +98,8 @@ endif()
 
 set(QT_MIN_VERSION 6.6.0)
 
+qt_policy(SET QTP0002 NEW)
+
 if (ANDROID)
   if(VCPKG_TARGET_TRIPLET STREQUAL "arm-android" OR VCPKG_TARGET_TRIPLET STREQUAL "arm-neon-android")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -fstack-protector-strong -lunwind -Wl,--exclude-libs=libunwind.a")
