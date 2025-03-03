@@ -46,12 +46,23 @@ function(create_executable)
 
   if(ANDROID)
     qt_add_executable(${exe_TARGET} ${QFIELD_SOURCES})
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-                                           ${ANDROID_PACKAGE_SOURCE_DIR})
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_IMPORT_PATH
-                                           $ENV{Qt6_DIR}/qml)
-    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_ROOT_PATH
-                                           ${CMAKE_SOURCE_DIR}/src/qml)
+    
+    # Ensure properties are set with proper JSON formatting
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR 
+      "${ANDROID_PACKAGE_SOURCE_DIR}")
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_IMPORT_PATH 
+      "$ENV{Qt6_DIR}/qml")
+    set_property(TARGET ${exe_TARGET} PROPERTY QT_QML_ROOT_PATH 
+      "${CMAKE_SOURCE_DIR}/src/qml")
+    
+    # Add this target to the list of Android build targets
+    get_property(_android_targets GLOBAL PROPERTY QT_ANDROID_BUILD_TARGETS)
+    list(APPEND _android_targets ${exe_TARGET})
+    set_property(GLOBAL PROPERTY QT_ANDROID_BUILD_TARGETS "${_android_targets}")
+    
+    # Set Android-specific build directory
+    set_property(TARGET ${exe_TARGET} PROPERTY ANDROID_BUILD_DIR 
+      "${CMAKE_BINARY_DIR}/android-build/${exe_TARGET}")
   else()
     add_executable(${exe_TARGET} ${exe_EXTRA_ARGS} ${QFIELD_SOURCES})
   endif()
