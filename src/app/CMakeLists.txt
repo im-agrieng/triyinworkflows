@@ -2,18 +2,17 @@
 find_package(Qt6QuickCompiler QUIET)
 find_package(Qt6 COMPONENTS Core5Compat LinguistTools REQUIRED)
 
+# Set Qt Android build directory option for multiple targets
 if(ANDROID)
   set(QT_USE_TARGET_ANDROID_BUILD_DIR TRUE CACHE BOOL "Use per-target Android build directories")
-
-  qt_policy(SET QTP0002 NEW)  # Use this instead of cmake_policy
   
-  # Set Android-specific variables for the target
-  set(ANDROID_TEMPLATE_FOLDER "${CMAKE_BINARY_DIR}/android-template")
-  set(ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_TEMPLATE_FOLDER}")
+  # Set Qt policy for Android path handling
+  if(POLICY QTP0002)
+    cmake_policy(SET QTP0002 NEW)
+  endif()
 
-  # Create the Android deployment settings file
-  set(_ANDROID_DEPLOYMENT_SETTINGS_FILE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json")
-  file(WRITE "${_ANDROID_DEPLOYMENT_SETTINGS_FILE}"
+  # Generate Android deployment settings directly
+  file(WRITE "${CMAKE_BINARY_DIR}/src/app/android-qfield-deployment-settings.json"
     "{\n"
     "  \"description\": \"This file is used by androiddeployqt\",\n"
     "  \"qt\": \"${Qt6_DIR}\",\n"
@@ -23,15 +22,11 @@ if(ANDROID)
     "  \"tool-prefix\": \"llvm\",\n"
     "  \"toolchain-version\": \"${ANDROID_NDK_VERSION}\",\n"
     "  \"target-architecture\": \"${ANDROID_ABI}\",\n"
+    "  \"android-package-source-directory\": \"${ANDROID_PACKAGE_SOURCE_DIR}\",\n"
+    "  \"android-platform\": \"${ANDROID_PLATFORM}\",\n"
     "  \"application-binary\": \"${CMAKE_BINARY_DIR}/src/app/app\"\n"
     "}\n"
   )
-
-  # Copy Android template files
-  if(EXISTS "${CMAKE_SOURCE_DIR}/platform/android")
-    file(COPY "${CMAKE_SOURCE_DIR}/platform/android/" DESTINATION "${ANDROID_TEMPLATE_FOLDER}/")
-  endif()
-
 endif()
 
 # Set Qt policy for Android path handling
